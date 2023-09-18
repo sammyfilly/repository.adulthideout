@@ -15,7 +15,7 @@ addon = xbmcaddon.Addon()
 addon = xbmcaddon.Addon(id='plugin.video.adulthideout')
 home = addon.getAddonInfo('path')
 if home[-1] == ';':
-    home = home[0:-1]
+    home = home[:-1]
 cacheDir = os.path.join(home, 'cache')
 cookiePath = os.path.join(home, 'cookies.lwp')
 fanart = os.path.join(home, 'resources/logos/fanart.jpg')
@@ -41,21 +41,20 @@ urllib_request.install_opener(urllib_request.build_opener(COOKIE_HANDLER))
 MAX_RETRY_ATTEMPTS = int(addon.getSetting('max_retry_attempts'))
 
 def add_dir(name, url, mode, iconimage, fanart):
-    u = sys.argv[0] + '?url=' + urllib_parse.quote_plus(url) + '&mode=' + str(mode) +\
-        '&name=' + urllib_parse.quote_plus(name) + '&iconimage=' + str(iconimage)
-    xbmc.log("Adding directory: Name: {}, URL: {}, Mode: {}, Icon: {}, Fanart: {}".format(name, url, mode, iconimage, fanart), level=xbmc.LOGINFO)
+    u = f'{sys.argv[0]}?url={urllib_parse.quote_plus(url)}&mode={str(mode)}&name={urllib_parse.quote_plus(name)}&iconimage={str(iconimage)}'
+    xbmc.log(
+        f"Adding directory: Name: {name}, URL: {url}, Mode: {mode}, Icon: {iconimage}, Fanart: {fanart}",
+        level=xbmc.LOGINFO,
+    )
     ok = True
     liz = xbmcgui.ListItem(name)
     liz.setArt({ 'thumb': iconimage, 'icon': icon, 'fanart': fanart})
-    ok = xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=u,
-                                    listitem=liz, isFolder=True)
-    return ok
+    return xbmcplugin.addDirectoryItem(
+        handle=int(sys.argv[1]), url=u, listitem=liz, isFolder=True
+    )
 
 def add_sub_dir(parent_name, name, url, mode, iconimage, fanart, description=''):
-    u = (url + "?url=" + urllib_parse.quote_plus(url) +
-         "&mode=" + str(mode) + "&name=" + urllib_parse.quote_plus(parent_name + '/' + name) +
-         "&iconimage=" + urllib_parse.quote_plus(iconimage) +
-         "&description=" + urllib_parse.quote_plus(description))
+    u = f"{url}?url={urllib_parse.quote_plus(url)}&mode={str(mode)}&name={urllib_parse.quote_plus(f'{parent_name}/{name}')}&iconimage={urllib_parse.quote_plus(iconimage)}&description={urllib_parse.quote_plus(description)}"
     liz = xbmcgui.ListItem(name)
     liz.setInfo(type="Video", infoLabels={"Title": name, "Plot": description})
     liz.setArt({'thumb': iconimage, 'icon': iconimage, 'fanart': fanart})
@@ -65,9 +64,11 @@ def add_sub_dir(parent_name, name, url, mode, iconimage, fanart, description='')
 
 def add_link(name, url, mode, iconimage, fanart):
     quoted_url = urllib_parse.quote(url)
-    u = sys.argv[0] + '?url=' + quoted_url + '&mode=' + str(mode) \
-        + '&name=' + str(name) + "&iconimage=" + str(iconimage)
-    xbmc.log("Adding link to directory: Name: {}, URL: {}, Mode: {}, Icon: {}, Fanart: {}".format(name, url, mode, iconimage, fanart), level=xbmc.LOGINFO)
+    u = f'{sys.argv[0]}?url={quoted_url}&mode={str(mode)}&name={str(name)}&iconimage={str(iconimage)}'
+    xbmc.log(
+        f"Adding link to directory: Name: {name}, URL: {url}, Mode: {mode}, Icon: {iconimage}, Fanart: {fanart}",
+        level=xbmc.LOGINFO,
+    )
     ok = True
     liz = xbmcgui.ListItem(name)
     liz.setArt({'thumb': iconimage, 'icon': icon, 'fanart': iconimage})
@@ -81,11 +82,11 @@ def add_link(name, url, mode, iconimage, fanart):
                                     listitem=liz, isFolder=False)
 
 def resolve_url(url, websites):
-    xbmc.log("Input URL for resolve_url: {}".format(url), level=xbmc.LOGDEBUG)
+    xbmc.log(f"Input URL for resolve_url: {url}", level=xbmc.LOGDEBUG)
     for website in websites:
-        xbmc.log("Checking website URL: {}".format(website["url"]), level=xbmc.LOGDEBUG)
+        xbmc.log(f'Checking website URL: {website["url"]}', level=xbmc.LOGDEBUG)
         if website["url"] in url:
-            xbmc.log("Matching website found: {}".format(website["name"]), level=xbmc.LOGDEBUG)
+            xbmc.log(f'Matching website found: {website["name"]}', level=xbmc.LOGDEBUG)
             media_url = website['play_function'](url)
             break
         else:
@@ -116,12 +117,12 @@ def make_request(url, max_retry_attempts=3, retry_wait_time=5000, mobile=False):
             response.close()
             return link
         except urllib.error.URLError as e:
-            xbmc.log('Fehler beim Öffnen der URL "%s".' % url, level=xbmc.LOGERROR)
+            xbmc.log(f'Fehler beim Öffnen der URL "{url}".', level=xbmc.LOGERROR)
             if hasattr(e, 'code'):
-                xbmc.log('Fehlercode: %s.' % e.code, level=xbmc.LOGERROR)
+                xbmc.log(f'Fehlercode: {e.code}.', level=xbmc.LOGERROR)
             elif hasattr(e, 'reason'):
                 xbmc.log('Fehler beim Verbindungsaufbau zum Server.', level=xbmc.LOGERROR)
-                xbmc.log('Grund: %s' % e.reason, level=xbmc.LOGERROR)
+                xbmc.log(f'Grund: {e.reason}', level=xbmc.LOGERROR)
 
             retries += 1
             xbmc.sleep(retry_wait_time)
@@ -133,9 +134,4 @@ def make_request(url, max_retry_attempts=3, retry_wait_time=5000, mobile=False):
 def get_search_query():
     keyb = xbmc.Keyboard('', '[COLOR yellow]Enter search text[/COLOR]')
     keyb.doModal()
-    if keyb.isConfirmed():
-        return urllib_parse.quote_plus(keyb.getText())
-    return None
-
-
-    xbmcplugin.endOfDirectory(int(sys.argv[1]))
+    return urllib_parse.quote_plus(keyb.getText()) if keyb.isConfirmed() else None

@@ -60,8 +60,4 @@ def get_last_query():
             queries = json.load(f)
     else:
         queries = []
-    if queries:
-        last_query = queries[-1]
-    else:
-        last_query = ""
-    return last_query
+    return queries[-1] if queries else ""
