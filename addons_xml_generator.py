@@ -66,22 +66,18 @@ class Generator:
                 _path = os.path.join( addon, "addon.xml" )
                 # split lines for stripping
                 xml_lines = open( _path, "r" ).read().splitlines()
-                # new addon
-                addon_xml = ""
-                # loop thru cleaning each line
-                for line in xml_lines:
-                    # skip encoding format line
-                    if ( line.find( "<?xml" ) >= 0 ): continue
-                    # add line
-                    if sys.version < '3':
-                        addon_xml += unicode( line.rstrip() + "\n", "UTF-8" )
-                    else:
-                        addon_xml += line.rstrip() + "\n"
+                addon_xml = "".join(
+                    unicode(line.rstrip() + "\n", "UTF-8")
+                    if sys.version < '3'
+                    else line.rstrip() + "\n"
+                    for line in xml_lines
+                    if line.find("<?xml") < 0
+                )
                 # we succeeded so add to our final addons.xml text
                 addons_xml += addon_xml.rstrip() + "\n\n"
             except Exception as e:
                 # missing or poorly formatted addon.xml
-                print("Excluding %s for %s" % ( _path, e ))
+                print(f"Excluding {_path} for {e}")
         # clean and add closing tag
         addons_xml = addons_xml.strip() + u("\n</addons>\n")
         # save file
@@ -135,7 +131,7 @@ if ( __name__ == "__main__" ):
     for x in filesinrootdir:
         if re.search("plugin|repository|script" , x):#|repository
             foldertozip = rootdir+'\\'+x
-            zipfilename = x + '.zip'
+            zipfilename = f'{x}.zip'
             zipfilenamefirstpart = zipfilename[:-4]
             zipfilenamelastpart = zipfilename[len(zipfilename)-4:]
             zipsfolder = 'zips'
@@ -147,23 +143,23 @@ if ( __name__ == "__main__" ):
             #check if and move changelog, fanart and icon to zipdir
             filesinfoldertozip = os.listdir(foldertozip)
             for y in filesinfoldertozip:
-                print ('processing file: ' + os.path.join(rootdir,x,y))
+                print(f'processing file: {os.path.join(rootdir, x, y)}')
                 if re.search("addon.xml", y): # get version number of plugin
                     tree = ET.parse(os.path.join(rootdir,x,y))
                     root = tree.getroot()
                     for elem in root.iter('addon'):
-                        print (elem.tag + ': ' + elem.attrib['version'])
+                        print(f'{elem.tag}: ' + elem.attrib['version'])
                         version = '-'+elem.attrib['version']
                 if re.search("changelog", y):
                     firstpart = y[:-4]
                     lastpart = y[len(y)-4:]
                     shutil.copyfile(os.path.join(rootdir,x,y),os.path.join(zipsfolder,firstpart+version+lastpart))
-                    print ('Copying ' + y + ' to ' + zipsfolder)
+                    print(f'Copying {y} to {zipsfolder}')
                 if re.search("changelog|icon|fanart", y):
                     shutil.copyfile(os.path.join(rootdir,x,y),os.path.join(zipsfolder,y))
-                    print ('Copying ' + y + ' to ' + zipsfolder)
+                    print(f'Copying {y} to {zipsfolder}')
             zipfolder(zipfilenamefirstpart+zipfilenamelastpart, foldertozip, zipsfolder)
-            print ('Zipping ' + zipfilename + ' and moving to ' + zipfilenamefirstpart+version)
+            print(f'Zipping {zipfilename} and moving to {zipfilenamefirstpart}{version}')
 #            print 'zipfolder',zipsfolder
 #            print 'foldertozip',foldertozip
 #            print 'Old dir',os.path.join(os.path.join(os.getcwd(),zipsfolder),zipfilenamefirstpart+zipfilenamelastpart)

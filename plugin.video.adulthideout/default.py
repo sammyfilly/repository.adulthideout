@@ -23,14 +23,13 @@ addon = xbmcaddon.Addon()
 viewtype = int(addon.getSetting('viewtype'))
 view_modes = [50, 51, 500, 501, 502]
 view_mode = view_modes[viewtype]
-xbmc.executebuiltin('Container.SetViewMode({})'.format(view_mode))
+xbmc.executebuiltin(f'Container.SetViewMode({view_mode})')
 
 def menulist():
     try:
         with open(homemenu, 'r') as mainmenu:
             content = mainmenu.read()
-            match = re.findall('#.+,(.+?)\n(.+?)\n', content)
-            return match
+            return re.findall('#.+,(.+?)\n(.+?)\n', content)
     except FileNotFoundError:
         print("Error: File not found.")
     except Exception as e:
@@ -40,12 +39,18 @@ def main():
     for site in websites:
         name = site['name']
         url = site['url']
-        add_dir(f'{name.capitalize()} [COLOR yellow] Videos[/COLOR]', url, 2, logos + f'{name}.png', fanart)
+        add_dir(
+            f'{name.capitalize()} [COLOR yellow] Videos[/COLOR]',
+            url,
+            2,
+            f'{logos}{name}.png',
+            fanart,
+        )
 
 def start(url):
     addon_handle = int(sys.argv[1])
     add_home_button()
-    xbmc.log('start function called with URL: ' + url, xbmc.LOGINFO)
+    xbmc.log(f'start function called with URL: {url}', xbmc.LOGINFO)
     for site in websites:
         if url.startswith(site["url"]):
             site["function"](url)
@@ -55,7 +60,7 @@ def start(url):
     viewtype = int(addon.getSetting('viewtype'))
     view_modes = [50, 51, 500, 501, 502]
     view_mode = view_modes[viewtype]
-    xbmc.executebuiltin('Container.SetViewMode({})'.format(view_mode))
+    xbmc.executebuiltin(f'Container.SetViewMode({view_mode})')
 
 def add_home_button():
     add_dir("Home", "", 100, os.path.join(logos, 'adulthideout.png'), fanart)
@@ -63,21 +68,21 @@ def add_home_button():
 def process_website(url):
     parsed_input_url = urlparse(url)
     input_domain = parsed_input_url.netloc.replace("www.", "")
-    
+
     input_domain = re.sub(r'^[a-z]{2}\.', "", input_domain)
-    
+
     print(f"Input domain: {input_domain}")  # Log statement
-    
+
     search_results = []
-    
+
     for site in websites:
         parsed_site_url = urlparse(site["url"])
         site_domain = parsed_site_url.netloc.replace("www.", "")
-        
+
         site_domain = re.sub(r'^[a-z]{2}\.', "", site_domain)
-        
+
         print(f"Comparing input domain '{input_domain}' with site domain '{site_domain}'")  # Log statement
-        
+
         if site_domain == input_domain:
             function_name = site["function"].replace("-", "_")
             print(f"Matching website found: {site['name']}. Calling function {function_name}.")
@@ -86,14 +91,8 @@ def process_website(url):
             except Exception as e:
                 print(f"An error occurred while executing the function {function_name}: ", e)
             break
-                
+
     return search_results
-    xbmcplugin.setContent(addon_handle, 'movies')
-    addon = xbmcaddon.Addon()
-    viewtype = int(addon.getSetting('viewtype'))
-    view_modes = [50, 51, 500, 501, 502]
-    view_mode = view_modes[viewtype]
-    xbmc.executebuiltin('Container.SetViewMode({})'.format(view_mode))
 
 def search_website(website_name, search_query=None):
     site = next((site for site in websites if site["name"] == website_name or site["url"].find(website_name) != -1), None)
@@ -103,22 +102,22 @@ def search_website(website_name, search_query=None):
     if search_query is None:
         all_queries = get_all_queries()
         for query in all_queries:
-            url_value = "{}?{}".format(site["name"], urllib.parse.quote_plus(query))
+            url_value = f'{site["name"]}?{urllib.parse.quote_plus(query)}'
             add_dir(query, url_value, 6, "", "")
-        
-        add_dir("New Search", "{}?new_search".format(site["name"]), 6, "", "")
+
+        add_dir("New Search", f'{site["name"]}?new_search', 6, "", "")
         add_dir("Clear Search History", "clear_search_history", 6, "", "")
-        
+
         xbmcplugin.setPluginCategory(int(sys.argv[1]), 'Search Results')
         xbmcplugin.setContent(int(sys.argv[1]), 'movies')
-        xbmc.executebuiltin('Container.SetViewMode({})'.format(view_mode))
+        xbmc.executebuiltin(f'Container.SetViewMode({view_mode})')
         xbmcplugin.endOfDirectory(int(sys.argv[1]))
     else:
         # Call the website's search function with the full search URL.
         search_url = urllib.parse.urljoin(site["url"], site["search_url"].format(search_query))
         site["function"](search_url)
         xbmcplugin.setContent(int(sys.argv[1]), 'movies')
-        xbmc.executebuiltin('Container.SetViewMode({})'.format(view_mode))
+        xbmc.executebuiltin(f'Container.SetViewMode({view_mode})')
 
 def handle_search_entry(url, mode):
     if "?" in url:
@@ -156,7 +155,7 @@ def get_params():
             params = sys.argv[2]
             cleanedparams = params.replace('?', '')
             if (params[len(params) - 1] == '/'):
-                params = params[0:len(params) - 2]
+                params = params[:len(params) - 2]
             pairsofparams = cleanedparams.split('&')
             param = {}
             for pair in pairsofparams:

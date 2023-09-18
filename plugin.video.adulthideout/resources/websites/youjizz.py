@@ -11,23 +11,35 @@ from urllib.parse import urlparse
 
 def process_youjizz_content(url, page=1):
     if "search" not in url and not re.search(r"/newest-clips/\d+\.html", url):
-        url = url + "/newest-clips/1.html"
+        url = f"{url}/newest-clips/1.html"
 
     if page == 1:
-        if  "{}" in url:
+        if "{}" in url:
             search_word = re.search(r'\{\}(.*?)$', url).group(1)
-            url = url.replace("{}" + search_word, search_word + "/")
+            url = url.replace("{}" + search_word, f"{search_word}/")
     content = make_request(url)
     match = re.compile('data-original="([^"]*)".+?<a href=\'(.+?)\' class="">(.+?)</a>', re.DOTALL).findall(content)
-    add_dir('[COLOR blue]Search[/COLOR]', 'youjizz', 5, logos + 'youjizz.png', fanart)
+    add_dir(
+        '[COLOR blue]Search[/COLOR]',
+        'youjizz',
+        5,
+        f'{logos}youjizz.png',
+        fanart,
+    )
     # Get the base URL part from the input URL
     parsed_url = urlparse(url)
     base_url = f"{parsed_url.scheme}://{parsed_url.netloc}"
-    
+
     for thumb, url, name in match:
-        add_link(name, base_url + url, 4, 'https:' + thumb, fanart)
+        add_link(name, base_url + url, 4, f'https:{thumb}', fanart)
     match = re.compile('<a class="pagination-next" href="(.+?)">Next &raquo;</a></li></ul>').findall(content)
-    add_dir('[COLOR blue]Next  Page  >>>>[/COLOR]', base_url + match[0], 2, logos + 'youjizz.png', fanart)
+    add_dir(
+        '[COLOR blue]Next  Page  >>>>[/COLOR]',
+        base_url + match[0],
+        2,
+        f'{logos}youjizz.png',
+        fanart,
+    )
 
 def play_youjizz_video(url):
     content = make_request(url)
@@ -38,9 +50,7 @@ def play_youjizz_video(url):
     for quality in preferred_order:
         for media_url in data:
             if quality in media_url:
-                media_url = 'https:' + media_url.replace('/', '')
-                return media_url
-
+                return 'https:' + media_url.replace('/', '')
     # If 1080 and 720 are not found, return the first available media_url
     media_url = 'https:' + data[0].replace('/', '')
     return media_url

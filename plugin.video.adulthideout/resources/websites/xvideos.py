@@ -11,25 +11,43 @@ from urllib.parse import urlparse
 def process_xvideos_content(url, mode=None):
     # changing the base-URl to base-URL + /new/1/
     if "search" not in url and "/new/" not in url:
-        url = url + "/new/1/"
-    
+        url = f"{url}/new/1/"
+
     content = make_request(url)
-    add_dir('[COLOR blue]Search[/COLOR]', 'xvideos', 5, logos + 'xvideos.png', fanart)
+    add_dir(
+        '[COLOR blue]Search[/COLOR]',
+        'xvideos',
+        5,
+        f'{logos}xvideos.png',
+        fanart,
+    )
     match = re.compile('<img src=".+?" data-src="([^"]*)"(.+?)<p class="title"><a href="([^"]*)" title="([^"]*)".+?<span class="duration">([^"]*)</span>', re.DOTALL).findall(content)
-    
+
     # Get the base URL part from the input URL
     parsed_url = urlparse(url)
     base_url = f"{parsed_url.scheme}://{parsed_url.netloc}"    
-    
+
     for thumb, dummy, url, name, duration in match:
         name = name.replace('&amp;', '&').replace('&quot;', '"').replace('&#39;', '`')
         url = url.replace('THUMBNUM/', '')
-        add_link(name + ' [COLOR lime]('+ duration + ')[/COLOR]', base_url + url, 4, thumb, fanart)
-    
+        add_link(
+            f'{name} [COLOR lime]({duration})[/COLOR]',
+            base_url + url,
+            4,
+            thumb,
+            fanart,
+        )
+
     try:
         match = re.compile('<a href="([^"]*)" class="no-page next-page">').findall(content)
         match = [item.replace('&amp;', '&') for item in match]
-        add_dir('[COLOR blue]Next  Page  >>>>[/COLOR]', base_url + match[0], 2, logos + 'xvideos.png', fanart)
+        add_dir(
+            '[COLOR blue]Next  Page  >>>>[/COLOR]',
+            base_url + match[0],
+            2,
+            f'{logos}xvideos.png',
+            fanart,
+        )
     except:
         pass
     

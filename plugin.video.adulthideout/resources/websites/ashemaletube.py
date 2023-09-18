@@ -12,13 +12,25 @@ import sys
 
 def process_ashemaletube_content(url):
     if "search" not in url and "newest" not in url:
-        url = url + "/videos/newest/?s="
+        url = f"{url}/videos/newest/?s="
     if 'tags' in url:
         process_ashemaletube_categories(url)
     else:
         content = make_request(url, mobile=False)
-        add_dir("Categories", "https://ashemaletube.com/tags/", 2, logos + 'ashemaletube.png', fanart)
-        add_dir(f'Search ashemaletube', 'ashemaletube', 5, logos + 'ashemaletube.png', fanart)
+        add_dir(
+            "Categories",
+            "https://ashemaletube.com/tags/",
+            2,
+            f'{logos}ashemaletube.png',
+            fanart,
+        )
+        add_dir(
+            'Search ashemaletube',
+            'ashemaletube',
+            5,
+            f'{logos}ashemaletube.png',
+            fanart,
+        )
         match = re.compile('<span class="thumb-inner-wrapper">.+?<a href="([^"]*)" >.+?<img src="([^"]*)" alt="([^"]*)"', re.DOTALL).findall(content)
         parsed_url = urlparse(url)
         base_url = f"{parsed_url.scheme}://{parsed_url.netloc}"
@@ -29,7 +41,13 @@ def process_ashemaletube_content(url):
         try:
             match = re.compile('<link rel="next" href="(.+?)" />').findall(content)
             next_url = base_url + match[0]
-            add_dir('[COLOR blue]Next  Page  >>>>[/COLOR]', next_url, 2, logos + 'ashemaletube.png', fanart)
+            add_dir(
+                '[COLOR blue]Next  Page  >>>>[/COLOR]',
+                next_url,
+                2,
+                f'{logos}ashemaletube.png',
+                fanart,
+            )
         except:
             pass
 
@@ -39,11 +57,11 @@ def process_ashemaletube_categories(url):
     base_url = f"{parsed_url.scheme}://{parsed_url.netloc}"
     categories = re.compile('<a title="([^"]*)" href="([^"]*)" class="btn btn-colored"', re.DOTALL).findall(content)
     for name, video_url in categories:
-        add_dir(name, base_url + video_url, 2, logos + 'ashemaletube.png', fanart)
+        add_dir(name, base_url + video_url, 2, f'{logos}ashemaletube.png', fanart)
 
 def play_ashemaletube_video(url):
     content = make_request(url)
     media_url = re.compile('<source src="(.+?)" type="video/mp4">').findall(content)[0]
     media_url = media_url.replace('amp;', '')
-    xbmc.log("Media URL: " + media_url, xbmc.LOGINFO)
+    xbmc.log(f"Media URL: {media_url}", xbmc.LOGINFO)
     return media_url
